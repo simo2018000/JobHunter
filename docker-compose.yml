@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_PATH=/data/jobs.db
+      - SCRAPER_URL=${SCRAPER_URL:-http://localhost:3001/run}
+    volumes:
+      - C:\jobhunter-bot\scraper:/data
+    networks:
+      - jobhunter-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    depends_on:
+      - api
+    networks:
+      - jobhunter-net
+
+networks:
+  jobhunter-net:
+    driver: bridge

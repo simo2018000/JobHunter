@@ -6,6 +6,7 @@ import { KanbanBoard } from '../components/KanbanBoard';
 import { TableView } from '../components/TableView';
 import { JobDetailModal } from '../components/JobDetailModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Briefcase } from 'lucide-react';
 
 export function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -26,13 +27,12 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchJobs();
-    const interval = setInterval(fetchJobs, 30000); // Poll every 30s
+    const interval = setInterval(fetchJobs, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const handleStatusChange = async (jobId: string, newStatus: string) => {
     try {
-      // Optimistic update
       setJobs(current => current.map(job => {
         if (job.id === jobId) {
           const apps = [...(job.applications || [])];
@@ -49,45 +49,54 @@ export function Dashboard() {
       fetchJobs();
     } catch (error) {
       console.error("Failed to update status", error);
-      fetchJobs(); // Revert on failure
+      fetchJobs();
     }
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <StatsDashboard />
-      
-      <Tabs defaultValue="kanban" className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold tracking-tight">Applications</h2>
-          <TabsList>
-            <TabsTrigger value="kanban">Kanban Board</TabsTrigger>
-            <TabsTrigger value="table">Table View</TabsTrigger>
-          </TabsList>
+    <>
+      <header className="border-b border-border bg-white sticky top-0 z-10">
+        <div className="container mx-auto px-6 py-3 flex items-center gap-2">
+          <Briefcase className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-foreground">JobHunter</span>
         </div>
-        
-        <TabsContent value="kanban" className="mt-0">
-          <KanbanBoard 
-            jobs={jobs} 
-            onJobClick={setSelectedJob} 
-            onStatusChange={handleStatusChange} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="table" className="mt-0">
-          <TableView 
-            jobs={jobs} 
-            onJobClick={setSelectedJob} 
-          />
-        </TabsContent>
-      </Tabs>
+      </header>
 
-      <JobDetailModal 
-        job={selectedJob}
-        isOpen={!!selectedJob}
-        onClose={() => setSelectedJob(null)}
-        onUpdate={fetchJobs}
-      />
-    </div>
+      <main className="container mx-auto px-6 py-8">
+        <StatsDashboard />
+
+        <Tabs defaultValue="kanban" className="w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base font-semibold text-foreground">Applications</h2>
+            <TabsList className="bg-slate-100">
+              <TabsTrigger value="kanban">Board</TabsTrigger>
+              <TabsTrigger value="table">Table</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="kanban" className="mt-0">
+            <KanbanBoard
+              jobs={jobs}
+              onJobClick={setSelectedJob}
+              onStatusChange={handleStatusChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="table" className="mt-0">
+            <TableView
+              jobs={jobs}
+              onJobClick={setSelectedJob}
+            />
+          </TabsContent>
+        </Tabs>
+
+        <JobDetailModal
+          job={selectedJob}
+          isOpen={!!selectedJob}
+          onClose={() => setSelectedJob(null)}
+          onUpdate={fetchJobs}
+        />
+      </main>
+    </>
   );
 }

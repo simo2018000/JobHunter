@@ -30,13 +30,15 @@ public class StatsController : ControllerBase
             .Select(g => new { name = g.Key ?? "Unknown", value = g.Count() })
             .ToListAsync();
 
-        var dateStats = await _context.Jobs
+        var rawDateStats = await _context.Jobs
             .Where(j => j.SeenAt.HasValue)
             .GroupBy(j => j.SeenAt.Value.Date)
-            .Select(g => new { date = g.Key.ToString("yyyy-MM-dd"), count = g.Count() })
+            .Select(g => new { date = g.Key, count = g.Count() })
             .OrderBy(x => x.date)
             .Take(14)
             .ToListAsync();
+
+        var dateStats = rawDateStats.Select(x => new { date = x.date.ToString("yyyy-MM-dd"), count = x.count }).ToList();
 
         return Ok(new
         {
